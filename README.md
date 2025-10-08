@@ -27,9 +27,9 @@ gtkwave pre_synth_sim.vcd
 
 **Result:**
 
-![01](./images/01.png))
+![01](./images/01.png)
 
-![02](./images/02.png))
+![02](./images/02.png)
 
 * ✅ Functional verification of the BabySoC RTL using TL-Verilog to Verilog conversion.
 * ✅ Waveform visualization of key signals (`CLK`, `reset`, `OUT`, `RV_TO_DAC[9:0]`).
