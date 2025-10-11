@@ -744,6 +744,33 @@ Each `.txt` file in `STA_OUTPUT` contains:
 
 ## 🚀 **10. Conclusion**
 
+![20](./images/31.png)
+
+The above graph represents the Static Timing Analysis (STA) results for the VSDBabySoC design across multiple PVT (Process, Voltage, Temperature) corners. Each bar corresponds to the Setup Slack (Max Delay) and Hold Slack (Min Delay) for a given corner, as obtained from OpenSTA analysis.
+
+X-axis: Represents the PVT corners (e.g., TT_025C_1v80, SS_100C_1v60, FF_n40C_1v95).
+
+Y-axis: Displays the slack values (in nanoseconds). Positive slack indicates that the design meets timing, while negative slack indicates a violation.
+
+Green Bars: Indicate that the timing is met (no violation).
+
+Red Bars: Indicate timing violations, requiring optimization or design fixes.
+
+Setup Slack (Max Delay): Represents the maximum delay path where data must arrive before the next clock edge.
+
+Hold Slack (Min Delay): Represents the minimum delay path where data must remain stable after the clock edge.
+
+From the graph, we can infer:
+
+The typical corner (TT) meets both setup and hold requirements comfortably.
+
+The slow corner (SS) shows tighter timing margins for setup but still within limits.
+
+The fast corner (FF) may show minor hold violations due to shorter path delays, which is common and can be fixed through buffer insertion or routing optimization.
+
+This visualization provides a clear overview of the design’s timing robustness across corners, ensuring that the VSDBabySoC is functionally reliable under different operating conditions.
+
+
 ✅ Successfully performed **Static Timing Analysis (STA)** using **OpenSTA**
 ✅ Verified **setup and hold** timing for the **VSDBabySoC** across **13 PVT corners**
 ✅ Generated reports for **WNS, TNS, and Slack**
