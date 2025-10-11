@@ -428,26 +428,332 @@ report_wns
 ---
 
 
+## 🧩 **Part 3: Static Timing Analysis using OpenSTA**
+
+### 🎯 Objective
+
+Perform Static Timing Analysis (STA) for the synthesized **VSDBabySoC** design using **OpenSTA**, verify timing across multiple corners, and extract reports such as worst slack, TNS, and WNS.
+
+---
+
+## ⚙️ **1. Installation of OpenSTA**
+
+> **Note:** Installation steps are adapted from the official OpenSTA repository — [🔗 GitHub Link](https://github.com/parallaxsw/OpenSTA)
+
+### 🪜 Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/parallaxsw/OpenSTA.git
+cd OpenSTA
+```
+
+---
+
+### 🧱 Step 2: Build the Docker Image
+
+```bash
+docker build --file Dockerfile.ubuntu22.04 --tag opensta .
+```
+
+This creates a Docker image named **opensta** using the Ubuntu 22.04 Dockerfile, installing all necessary dependencies.
+
 ![20](./images/20.png)
 
-![19](./images/21.png)
+---
 
-![19](./images/22.png)
+### 🧩 Step 3: Run the OpenSTA Container
 
-![19](./images/23.png)
+Run OpenSTA in interactive mode with a mounted directory for data:
 
-![19](./images/24.png)
+```bash
+docker run -i -v $HOME:/data opensta
+```
 
-![19](./images/25.png)
+Once inside, the shell prompt changes to `%`, indicating that OpenSTA is active.
+
+![20](./images/21.png)
+
+---
+
+## 📊 **2. Quick Timing Analysis (Inline Flow)**
+
+To verify setup and hold paths interactively, execute the following commands inside the OpenSTA shell:
+
+```tcl
+read_liberty /OpenSTA/examples/nangate45_slow.lib.gz
+read_verilog /OpenSTA/examples/example1.v
+link_design top
+create_clock -name clk -period 10 {clk1 clk2 clk3}
+set_input_delay -clock clk 0 {in1 in2}
+report_checks
+```
+
+
+![20](./images/22.png)
+
+---
+
+### 💡 Observation:
+
+* By default, `report_checks` performs **setup (max delay)** checks.
+* To include both **setup and hold**, use:
+
+  ```tcl
+  report_checks -path_delay min_max
+  ```
+* To view only **hold (min delay)** paths:
+
+  ```tcl
+  report_checks -path_delay min
+  ```
+
+---
+
+## 🔍 **3. Example Design Used: `example1.v`**
+
+```verilog
+module top (in1, in2, clk1, clk2, clk3, out);
+  input in1, in2, clk1, clk2, clk3;
+  output out;
+  wire r1q, r2q, u1z, u2z;
+
+  DFF_X1 r1 (.D(in1), .CK(clk1), .Q(r1q));
+  DFF_X1 r2 (.D(in2), .CK(clk2), .Q(r2q));
+  BUF_X1 u1 (.A(r2q), .Z(u1z));
+  AND2_X1 u2 (.A1(r1q), .A2(u1z), .ZN(u2z));
+  DFF_X1 r3 (.D(u2z), .CK(clk3), .Q(out));
+endmodule
+```
+
+![20](./images/23.png)
+
+---
+
+## 🧠 **4. Yosys Synthesis Flow**
+
+Inside the same directory (`~/VLSI/VSDBabySoC/OpenSTA/examples/`):
+
+```bash
+yosys
+yosys> read_liberty -lib nangate45_slow.lib
+yosys> read_verilog example1.v
+yosys> synth -top top
+yosys> show
+```
+
+This generates the synthesized gate-level netlist with 5 logic cells (3 DFFs, 1 BUF, 1 AND2).
+
+![20](./images/24.png)
+
+---
+
+## ⚡ **5. SPEF-Based Parasitic Timing Analysis**
+
+To perform more realistic STA with parasitic RC information:
+
+```tcl
+read_liberty /OpenSTA/examples/nangate45_slow.lib.gz
+read_verilog /OpenSTA/examples/example1.v
+link_design top
+read_spef /OpenSTA/examples/example1.dspef
+create_clock -name clk -period 10 {clk1 clk2 clk3}
+set_input_delay -clock clk 0 {in1 in2}
+report_checks
+```
+
+![20](./images/25.png)
+
+---
+
+## 📘 **6. Extended OpenSTA Reporting**
+
+### 🔹 a. Capacitance per Stage
+
+```tcl
+report_checks -digits 4 -fields capacitance
+```
+---
+
+### 🔹 b. Slew, Input Pins, and Fanout
+
+```tcl
+report_checks -digits 4 -fields {capacitance slew input_pins fanout}
+```
+---
+
+### 🔹 c. Power Analysis
+
+```tcl
+report_power
+```
+
+Generates internal, switching, leakage, and total power summaries categorized by sequential and combinational groups.
+
+---
+
+### 🔹 d. Pulse Width Checks
+
+```tcl
+report_pulse_width_checks
+```
+
+Ensures clock signals have valid pulse widths.
+
+---
+
+### 🔹 e. Report Units
+
+```tcl
+report_units
+```
+
+Displays measurement units used for analysis.
+
+
+---
+
+## 🧾 **7. Automating STA with a TCL Script**
+
+To automate the timing flow, we wrote a script named **`min_max_delays.tcl`**.
+
+### 🧩 **Script Content**
+
+```tcl
+read_liberty -max nangate45_slow.lib.gz
+read_liberty -min nangate45_fast.lib.gz
+read_verilog example1.v
+link_design top
+create_clock -name clk -period 10 {clk1 clk2 clk3}
+set_input_delay -clock clk 0 {in1 in2}
+report_checks -path_delay min_max
+```
+
+### ▶️ **Run the Script via Docker**
+
+```bash
+docker run -it -v $HOME:/data opensta /data/VLSI/VSDBabySoC/OpenSTA/examples/min_max_delays.tcl
+```
 
 ![19](./images/26.png)
+
+---
+
+## 🧩 **8. Advanced STA for VSDBabySoC Multi-Corner Analysis**
+
+We extended this process for our **VSDBabySoC** synthesized design (`vsdbabysoc.synth.v`) across **13 Sky130 corner libraries**.
+
+### 📂 **File Structure**
+
+```
+~/Soc/2/w2/VSDBabySoC/OpenSTA/examples/
+ ├── BabySoC/
+ │   ├── vsdbabysoc.synth.v
+ │   ├── vsdbabysoc_synthesis.sdc
+ │   └── STA_OUTPUT/
+ │       ├── min_max_<libname>.txt
+ │       ├── sta_wns.txt
+ │       ├── sta_tns.txt
+ │       ├── sta_worst_max_slack.txt
+ │       └── sta_worst_min_slack.txt
+ └── timing_libs/
+     ├── sky130_fd_sc_hd__tt_025C_1v80.lib
+     ├── sky130_fd_sc_hd__ff_100C_1v95.lib
+     ├── sky130_fd_sc_hd__ss_n40C_1v28.lib
+     └── ...
+```
+
+---
+
+### 🧠 **TCL Script Used**
+
+```tcl
+set list_of_lib_files {
+    "sky130_fd_sc_hd__tt_025C_1v80.lib"
+    "sky130_fd_sc_hd__ff_100C_1v65.lib"
+    "sky130_fd_sc_hd__ff_100C_1v95.lib"
+    "sky130_fd_sc_hd__ff_n40C_1v56.lib"
+    "sky130_fd_sc_hd__ff_n40C_1v65.lib"
+    "sky130_fd_sc_hd__ff_n40C_1v76.lib"
+    "sky130_fd_sc_hd__ss_100C_1v40.lib"
+    "sky130_fd_sc_hd__ss_100C_1v60.lib"
+    "sky130_fd_sc_hd__ss_n40C_1v28.lib"
+    "sky130_fd_sc_hd__ss_n40C_1v35.lib"
+    "sky130_fd_sc_hd__ss_n40C_1v40.lib"
+    "sky130_fd_sc_hd__ss_n40C_1v44.lib"
+    "sky130_fd_sc_hd__ss_n40C_1v76.lib"
+}
+
+read_liberty /data/VLSI/VSDBabySoC/OpenSTA/examples/timing_libs/avsdpll.lib
+read_liberty /data/VLSI/VSDBabySoC/OpenSTA/examples/timing_libs/avsddac.lib
+
+foreach lib_file $list_of_lib_files {
+    read_liberty /data/VLSI/VSDBabySoC/OpenSTA/examples/timing_libs/$lib_file
+    read_verilog /data/VLSI/VSDBabySoC/OpenSTA/examples/BabySoC/vsdbabysoc.synth.v
+    link_design vsdbabysoc
+    read_sdc /data/VLSI/VSDBabySoC/OpenSTA/examples/BabySoC/vsdbabysoc_synthesis.sdc
+
+    report_checks -path_delay min_max \
+        -fields {nets cap slew input_pins fanout} -digits {4} \
+        > /data/VLSI/VSDBabySoC/OpenSTA/examples/BabySoC/STA_OUTPUT/min_max_$lib_file.txt
+
+    exec echo "$lib_file" >> /data/VLSI/VSDBabySoC/OpenSTA/examples/BabySoC/STA_OUTPUT/sta_worst_max_slack.txt
+    report_worst_slack -max -digits {4} >> /data/VLSI/VSDBabySoC/OpenSTA/examples/BabySoC/STA_OUTPUT/sta_worst_max_slack.txt
+
+    exec echo "$lib_file" >> /data/VLSI/VSDBabySoC/OpenSTA/examples/BabySoC/STA_OUTPUT/sta_worst_min_slack.txt
+    report_worst_slack -min -digits {4} >> /data/VLSI/VSDBabySoC/OpenSTA/examples/BabySoC/STA_OUTPUT/sta_worst_min_slack.txt
+
+    exec echo "$lib_file" >> /data/VLSI/VSDBabySoC/OpenSTA/examples/BabySoC/STA_OUTPUT/sta_tns.txt
+    report_tns -digits {4} >> /data/VLSI/VSDBabySoC/OpenSTA/examples/BabySoC/STA_OUTPUT/sta_tns.txt
+
+    exec echo "$lib_file" >> /data/VLSI/VSDBabySoC/OpenSTA/examples/BabySoC/STA_OUTPUT/sta_wns.txt
+    report_wns -digits {4} >> /data/VLSI/VSDBabySoC/OpenSTA/examples/BabySoC/STA_OUTPUT/sta_wns.txt
+}
+```
 
 ![19](./images/27.png)
 
 ![19](./images/28.png)
 
+---
+
+### 🧾 **Output Summary**
+
+Each `.txt` file in `STA_OUTPUT` contains:
+
+* **`min_max_*.txt`** → Full path delay report for both setup & hold.
+* **`sta_worst_max_slack.txt`** → Worst setup slack across all corners.
+* **`sta_worst_min_slack.txt`** → Worst hold slack across all corners.
+* **`sta_tns.txt`** → Total Negative Slack report.
+* **`sta_wns.txt`** → Worst Negative Slack report.
+
 ![19](./images/29.png)
+
+---
+
+## 🧭 **9. Results and Observations**
+
+| Corner Library                | Type    | Worst Slack (ns) | TNS (ns) | Observation      |
+| ----------------------------- | ------- | ---------------- | -------- | ---------------- |
+| sky130_fd_sc_hd__tt_025C_1v80 | Typical | +0.45            | 0        | Timing met       |
+| sky130_fd_sc_hd__ff_100C_1v65 | Fast    | +0.62            | 0        | Faster paths     |
+| sky130_fd_sc_hd__ss_n40C_1v28 | Slow    | -0.37            | -1.10    | Timing violation |
 
 ![19](./images/30.png)
 
+---
+
+## 🚀 **10. Conclusion**
+
+✅ Successfully performed **Static Timing Analysis (STA)** using **OpenSTA**
+✅ Verified **setup and hold** timing for the **VSDBabySoC** across **13 PVT corners**
+✅ Generated reports for **WNS, TNS, and Slack**
+✅ Integrated multi-corner automation using a **TCL script**
+
+---
+
+## 🔜 **Next Step**
+
+> **In Week 4**, we proceed to **Post-Layout STA and Timing Closure Optimization** using SPEF-extracted parasitics from the **OpenROAD/OpenLane flow**.
+
+---
 
