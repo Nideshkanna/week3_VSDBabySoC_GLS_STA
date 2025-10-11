@@ -287,10 +287,6 @@ A **timing path** represents the journey of a signal from one timing point to an
 | **Register → Output**   | Flop output to pad                    | Output timing check          |
 | **Input → Output**      | Pure combinational logic              | Used for path delay analysis |
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/Ananya-KM/VSD_HDP/main/Images/paths.png" width="550"/>
-</p>
-
 ---
 
 ## 🧮 **Clock Definitions**
@@ -319,9 +315,6 @@ set_clock_uncertainty 0.2 [get_clocks clk]
 | **Setup Time** ⏱️ | Data must arrive **before** clock edge       | Data arrives too **late**  |
 | **Hold Time** 🧲  | Data must remain stable **after** clock edge | Data changes too **early** |
 
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/60194516/178118812-91707c0a-2ff8-47f3-9f3b-64a72e42489a.png" width="500"/>
-</p>
 
 ✅ Meeting both setup and hold ensures **stable flip-flop operation** and prevents **metastability**.
 
@@ -430,11 +423,8 @@ report_wns
 
 ---
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/Ananya-KM/VSD_HDP/main/Images/sta6.png" width="600"/>
-</p>
-
 > 🧾 *“If logic defines what a circuit does, timing defines **when** it does it — STA ensures both happen reliably.”*
 
 ---
+
 
