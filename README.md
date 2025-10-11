@@ -104,20 +104,50 @@ read_verilog -sv src/module/avsddac.v
 read_verilog -sv src/module/avsdpll.v
 read_verilog -sv src/module/pseudo_rand.sv
 read_verilog -sv src/module/pseudo_rand_gen.sv
+```
 
+![04](./images/04.png)
+![05](./images/05.png)
+
+```tcl
 # Read standard-cell and IP Liberty files
 read_liberty -lib src/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
 read_liberty -lib src/lib/avsddac.lib
 read_liberty -lib src/lib/avsdpll.lib
+```
+![03](./images/03.png)
 
+```tcl
 # Synthesize the top module
 synth -top vsdbabysoc
+```
+![06](./images/06.png)
 
+### Synthesis Statistics :
+
+![07](./images/07.png)
+
+![08](./images/08.png)
+
+![09](./images/09.png)
+
+![10](./images/10.png)
+
+![11](./images/11.png)
+
+```tcl
 # Map D-flip-flops and perform optimization
 dfflibmap -liberty src/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
 opt
 abc -liberty src/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+```
+![12](./images/12.png)
 
+![13](./images/13.png)
+
+![14](./images/14.png)
+
+```tcl
 # Cleanup and finalize
 flatten
 setundef -zero
@@ -130,6 +160,10 @@ stat
 # Write synthesized netlist
 write_verilog -noattr output/synthesis/vsdbabysoc.synth.v
 ```
+![15](./images/15.png)
+
+![16](./images/16.png)
+
 
 ---
 
@@ -161,6 +195,8 @@ Copy required standard-cell Verilog models:
 cp ~/Soc/3/sky130RTLDesignAndSynthesisWorkshop/my_lib/verilog_model/sky130_fd_sc_hd.v src/module/
 cp ~/Soc/3/sky130RTLDesignAndSynthesisWorkshop/my_lib/verilog_model/primitives.v src/module/
 ```
+![17](./images/17.png)
+
 
 #### ▶️ Compile & Run
 
@@ -175,12 +211,14 @@ iverilog -o output/post_synth_sim/post_synth_sim.out \
 cd output/post_synth_sim
 ./post_synth_sim.out
 ```
+![18](./images/18.png)
 
 #### 📈 Waveform Viewing
 
 ```bash
 gtkwave post_synth_sim.vcd
 ```
+![19](./images/19.png)
 
 ---
 
