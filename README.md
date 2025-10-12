@@ -771,16 +771,19 @@ The fast corner (FF) may show minor hold violations due to shorter path delays, 
 This visualization provides a clear overview of the design’s timing robustness across corners, ensuring that the VSDBabySoC is functionally reliable under different operating conditions.
 
 
+
 ✅ Successfully performed **Static Timing Analysis (STA)** using **OpenSTA**
+
 ✅ Verified **setup and hold** timing for the **VSDBabySoC** across **13 PVT corners**
+
 ✅ Generated reports for **WNS, TNS, and Slack**
+
 ✅ Integrated multi-corner automation using a **TCL script**
 
 ---
 
 ## 🔜 **Next Step**
 
-> **In Week 4**, we proceed to **Post-Layout STA and Timing Closure Optimization** using SPEF-extracted parasitics from the **OpenROAD/OpenLane flow**.
+> **In ![Week 4](https://github.com/Nideshkanna/week4_CMOS_Circuit_Design_sky130)**, we explore **CMOS Circuit Design and SPICE Simulation** using the **Sky130 PDK**, analyzing **MOSFET behavior, inverter characteristics, transient response, noise margins, and variation effects** to bridge the gap between **device-level physics and STA timing concepts**.
 
 ---
-
