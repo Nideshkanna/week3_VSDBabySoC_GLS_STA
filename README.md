@@ -784,6 +784,6 @@ This visualization provides a clear overview of the design’s timing robustness
 
 ## 🔜 **Next Step**
 
-> **In ![Week 4](https://github.com/Nideshkanna/week4_CMOS_Circuit_Design_sky130)**, we explore **CMOS Circuit Design and SPICE Simulation** using the **Sky130 PDK**, analyzing **MOSFET behavior, inverter characteristics, transient response, noise margins, and variation effects** to bridge the gap between **device-level physics and STA timing concepts**.
+**In [Week 4](https://github.com/Nideshkanna/week4_CMOS_Circuit_Design_sky130)**, we explore **CMOS Circuit Design and SPICE Simulation** using the **Sky130 PDK**, analyzing **MOSFET behavior, inverter characteristics, transient response, noise margins, and variation effects** to bridge the gap between **device-level physics and STA timing concepts**.
 
 ---
